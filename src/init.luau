@@ -12,6 +12,7 @@ type ResultImpl<V, E> = {
 	onErr: (self: Result<V, E>, fn: (err: E) -> ()) -> (),
 	match: <O>(self: Result<V, E>, ok: (ok: V) -> O, err: (err: E) -> O) -> O,
 	unwrap: (self: Result<V, E>) -> V,
+	unwrapErr: (self: Result<V, E>) -> E,
 	expect: (self: Result<V, E>, msg: string) -> V,
 }
 
@@ -72,6 +73,13 @@ function Result:unwrap()
 		return self._ok
 	end
 	error(`{self._err}`)
+end
+
+function Result:unwrapErr()
+	if self:isErr() then
+		return self._err
+	end
+	error(`result is not error`)
 end
 
 function Result:expect(msg: string)
