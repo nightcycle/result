@@ -6,6 +6,7 @@
 type State = "E" | "O"
 type ResultImpl<V, E> = {
 	__index: ResultImpl<V, E>,
+	__tostring: (self: Result<V, E>) -> string,
 	isOk: (self: Result<V, E>) -> boolean,
 	isErr: (self: Result<V, E>) -> boolean,
 	onOk: (self: Result<V, E>, fn: (ok: V) -> ()) -> (),
@@ -38,6 +39,13 @@ local STATE_ERR: State = "E"
 -- Class
 local Result = {} :: ResultImpl<unknown, unknown>
 Result.__index = Result
+
+function Result:__tostring(): string
+	if self:isOk() then
+		return `Ok<{self._ok}>`
+	end
+	return `Err<{self._err}>`
+end
 
 function Result:isOk(): boolean
 	return self._state == STATE_OK
