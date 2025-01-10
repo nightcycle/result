@@ -9,8 +9,8 @@ type ResultImpl<V, E> = {
 	__tostring: (self: Result<V, E>) -> string,
 	isOk: (self: Result<V, E>) -> boolean,
 	isErr: (self: Result<V, E>) -> boolean,
-	onOk: (self: Result<V, E>, fn: (ok: V) -> ()) -> (),
-	onErr: (self: Result<V, E>, fn: (err: E) -> ()) -> (),
+	onOk: (self: Result<V, E>, fn: (ok: V) -> ()) -> Result<V, E>,
+	onErr: (self: Result<V, E>, fn: (err: E) -> ()) -> Result<V, E>,
 	match: <O>(self: Result<V, E>, ok: (ok: V) -> O, err: (err: E) -> O) -> O,
 	unwrap: (self: Result<V, E>) -> V,
 	unwrapErr: (self: Result<V, E>) -> E,
@@ -59,12 +59,14 @@ function Result:onOk(fn: (ok: unknown) -> ())
 	if self:isOk() then
 		fn(self._ok)
 	end
+	return self
 end
 
 function Result:onErr(fn: (err: unknown) -> ())
 	if self:isErr() then
 		fn(self._err)
 	end
+	return self
 end
 
 function Result:match<O>(ok: (ok: unknown) -> O, err: (err: unknown) -> O): O
