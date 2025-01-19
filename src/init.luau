@@ -20,12 +20,8 @@ type ResultImpl<V, E> = {
 export type Result<V, E> = typeof(setmetatable(
 	{} :: {
 		_state: State,
-		_ok: V,
-		_err: nil,
-	} | {
-		_state: State,
-		_ok: nil,
-		_err: E,
+		_ok: V?,
+		_err: E?,
 	},
 	{} :: ResultImpl<V, E>
 ))
