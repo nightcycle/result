@@ -119,10 +119,10 @@ end
 
 function Result:match<O>(ok: (ok: unknown) -> O, err: (err: unknown) -> O): O
 	if Result.isOk(self) then
-		return err(self._err)
+		return ok(self._err)
 	else
 		assert(Result.isOk(self))
-		return ok(self._ok)
+		return err(self._ok)
 	end
 end
 
