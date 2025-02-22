@@ -10,6 +10,7 @@ type State = "E" | "O"
 type ResultImpl<V, E> = {
 	__index: ResultImpl<V, E>,
 	__tostring: (self: Result<V, E>) -> string,
+	__eq: (self: Result<V, E>, other: Result<V, E>) -> boolean,
 	isOk: (self: Result<V, E>) -> boolean,
 	isErr: (self: Result<V, E>) -> boolean,
 	inspect: (self: Result<V, E>, fn: (ok: V) -> ()) -> Result<V, E>,
@@ -92,6 +93,15 @@ function Result:__tostring(): string
 		return `Ok<{self._ok}>`
 	end
 	return `Err<{self._err}>`
+end
+
+function Result:__eq(other: Result<unknown, unknown>): boolean
+	if Result.isOk(self) and Result.isOk(other) then
+		return self._ok == other._ok
+	elseif Result.isErr(self) and Result.isErr(other) then
+		return self._err == other._err
+	end
+	return false
 end
 
 function Result:isOk(): boolean
