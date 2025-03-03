@@ -2,10 +2,8 @@
 -- https://doc.rust-lang.org/std/result/enum.Result.html
 -- Services
 -- Packages
-local Option = require("@wally/Option")
 -- Modules
 -- Types
-type Option<V> = Option.Option<V>
 type State = "E" | "O"
 type ResultImpl<V, E> = {
 	__index: ResultImpl<V, E>,
