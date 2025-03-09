@@ -48,8 +48,7 @@ Result.__index = Result
 -- non-construct interface methods
 local isResult = function<V, E>(value: unknown?): boolean
 	if typeof(value) == "table" then
-		local tabl = value :: { [unknown]: unknown? }
-		return getmetatable(tabl :: any) == Result and tabl._state == STATE_OK or tabl._state == STATE_ERR
+		return getmetatable(value :: any) == Result
 	end
 	return false
 end
@@ -73,15 +72,19 @@ local fromErr = function<V, E>(err: E): Result<V, E>
 	table.freeze(self)
 	return self
 end
+
 local try = function<V, string>(fn: () -> V): Result<V, string>
 	local out: V
-	local success, msg = pcall(function()
+	local errMessage: string?
+	xpcall(function()
 		out = fn()
+	end, function(msg)
+		errMessage = msg
 	end)
-	if success then
-		return fromOk(out)
+	if errMessage then
+		return fromErr(errMessage)
 	else
-		return fromErr(msg)
+		return fromOk(out)
 	end
 end
 
@@ -196,5 +199,9 @@ return {
 	ok = fromOk,
 	err = fromErr,
 	try = try,
+	-- because the syntax of local result = (function() return Result.ok(1) end)() is not ideal
+	from = function<V, E>(callback: () -> Result<V, E>): Result<V, E>
+		return callback()
+	end,
 	isResult = isResult,
 }
