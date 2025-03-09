@@ -23,6 +23,7 @@ type ResultImpl<V, E> = {
 	unwrapErr: (self: Result<V, E>) -> E,
 	unwrapOr: (self: Result<V, E>, alt: V) -> V,
 	unwrapOrElse: (self: Result<V, E>, fn: () -> V) -> V,
+	asNullable: (self: Result<V, E>) -> V?,
 	expect: (self: Result<V, E>, msg: string) -> V,
 }
 export type Result<V, E> = typeof(setmetatable(
