@@ -115,6 +115,13 @@ function Result:isErr(): boolean
 	return self._state == STATE_ERR
 end
 
+function Result:asNullable(): unknown?
+	if Result.isOk(self) then
+		return self._ok
+	end
+	return nil
+end
+
 function Result:inspect(fn: (ok: unknown) -> ())
 	if Result.isOk(self) then
 		fn(self._ok)
