@@ -7,24 +7,24 @@
 type State = "E" | "O"
 type ResultImpl<V, E> = {
 	__index: ResultImpl<V, E>,
-	__tostring: (self: Result<V, E>) -> string,
-	__eq: (self: Result<V, E>, other: Result<V, E>) -> boolean,
-	isOk: (self: Result<V, E>) -> boolean,
-	isErr: (self: Result<V, E>) -> boolean,
-	inspect: (self: Result<V, E>, fn: (ok: V) -> ()) -> Result<V, E>,
-	inspectErr: (self: Result<V, E>, fn: (err: E) -> ()) -> Result<V, E>,
-	match: <O>(self: Result<V, E>, ok: (ok: V) -> O, err: (err: E) -> O) -> O,
+	__tostring: (self: any) -> string,
+	__eq: (self: any, other: Result<V, E>) -> boolean,
+	isOk: (self: any) -> boolean,
+	isErr: (self: any) -> boolean,
+	inspect: (self: any, fn: (ok: V) -> ()) -> Result<V, E>,
+	inspectErr: (self: any, fn: (err: E) -> ()) -> Result<V, E>,
+	match: <O>(self: any, ok: (ok: V) -> O, err: (err: E) -> O) -> O,
 	--type swapping with map stuff is technically okay, but I can't get the type engine to recognize that
-	map: (self: Result<V, E>, fn: (ok: V) -> V) -> Result<V, E>,
-	mapErr: (self: Result<V, E>, fn: (err: E) -> E) -> Result<V, E>,
-	mapOr: (self: Result<V, E>, mapFn: (ok: V) -> V, alt: V) -> Result<V, E>,
-	mapOrElse: (self: Result<V, E>, mapFn: (ok: V) -> V, elseFn: () -> V) -> Result<V, E>,
-	unwrap: (self: Result<V, E>) -> V,
-	unwrapErr: (self: Result<V, E>) -> E,
-	unwrapOr: (self: Result<V, E>, alt: V) -> V,
-	unwrapOrElse: (self: Result<V, E>, fn: () -> V) -> V,
-	asNullable: (self: Result<V, E>) -> V?,
-	expect: (self: Result<V, E>, msg: string) -> V,
+	map: (self: any, fn: (ok: V) -> V) -> Result<V, E>,
+	mapErr: (self: any, fn: (err: E) -> E) -> Result<V, E>,
+	mapOr: (self: any, mapFn: (ok: V) -> V, alt: V) -> Result<V, E>,
+	mapOrElse: (self: any, mapFn: (ok: V) -> V, elseFn: () -> V) -> Result<V, E>,
+	unwrap: (self: any) -> V,
+	unwrapErr: (self: any) -> E,
+	unwrapOr: (self: any, alt: V) -> V,
+	unwrapOrElse: (self: any, fn: () -> V) -> V,
+	asNullable: (self: any) -> V?,
+	expect: (self: any, msg: string) -> V,
 }
 export type Result<V, E> = typeof(setmetatable(
 	{} :: {
@@ -56,7 +56,7 @@ end
 
 -- Constructors
 local fromOk = function<V, E>(ok: V): Result<V, E>
-	local self: Result<V, E> = setmetatable({
+	local self: any = setmetatable({
 		_state = STATE_OK :: string,
 		_ok = ok,
 		_err = nil,
@@ -65,7 +65,7 @@ local fromOk = function<V, E>(ok: V): Result<V, E>
 	return self
 end
 local fromErr = function<V, E>(err: E): Result<V, E>
-	local self: Result<V, E> = setmetatable({
+	local self: any = setmetatable({
 		_state = STATE_ERR :: string,
 		_ok = nil,
 		_err = err,
