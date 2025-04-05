@@ -1,0 +1,22 @@
+{
+	"name": "@nightcycle/option",
+	"version": "1.0.2",
+	"description": "a package",
+	"license": "Apache-2.0",
+	"author": "nightcycle <coyer@nightcycle.us>",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/nightcycle/option.git"
+	},
+	"main": "src/init.luau",
+	"scripts": {
+		"prepare": "npmluau"
+	},
+	"dependencies": {},
+	"devDependencies": {
+		"npmluau": "^0.1.1"
+	},
+	"keywords": [
+		"luau"
+	]
+}

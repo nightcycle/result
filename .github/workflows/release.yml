@@ -45,8 +45,6 @@ jobs:
     needs: get_published_release
     runs-on: windows-latest
     env:
-      LC_ALL: C.UTF-8
-      LANG: C.UTF-8
       ROJO_CONFIG: "dev.project.json"
       RBXL_FILE: "build/Package.rbxl"
     steps:
@@ -56,25 +54,23 @@ jobs:
       - uses: ok-nick/setup-aftman@v0.4.2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          
-      - name: install wally
-        run: sh scripts/wally-install.sh "${{env.ROJO_CONFIG}}"
 
-      - name: validate project
+      - name: install wally packages
+        run: sh scripts/wally-install.sh "dev.project.json"
+
+      - name: build validate project
         run: sh scripts/validate.sh --wally
 
       - name: Update version and labels
         shell: bash
         run: |
+          cd build
           repo_owner="${{needs.get_published_release.outputs.repo_owner_name}}"
           repo_name="${{needs.get_published_release.outputs.repo_name}}"
           repo_desc=${{needs.get_published_release.outputs.repo_desc}}
           goal_version_str="${{needs.get_published_release.outputs.tag_name}}"
 
           sh scripts/release/wally.sh "$repo_owner" "$repo_name" "$repo_desc" "$goal_version_str" "${{env.ROJO_CONFIG}}"
-
-      - name: build
-        run: sh scripts/build.sh --wally
 
       - name: Upload ${{env.RBXL_FILE}} file to release
         uses: actions/upload-release-asset@v1
@@ -90,6 +86,49 @@ jobs:
         shell: bash
         run: |
           cd build
-          set -e
           wally login --token "${{secrets.WALLY_OAUTH}}"
           wally publish
+
+  publish_to_npm:
+    needs: get_published_release
+    runs-on: windows-latest
+    env:
+      ROJO_CONFIG: "dev.project.json"
+    steps:
+      # Checkout your Git repo
+      - uses: actions/checkout@v4
+
+      - uses: ok-nick/setup-aftman@v0.4.2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update version and labels
+        shell: bash
+        run: |
+          repo_owner="${{needs.get_published_release.outputs.repo_owner_name}}"
+          repo_name="${{needs.get_published_release.outputs.repo_name}}"
+          repo_desc=${{needs.get_published_release.outputs.repo_desc}}
+          goal_version_str="${{needs.get_published_release.outputs.tag_name}}"
+
+          sh scripts/release/npm.sh "$repo_owner" "$repo_name" "$repo_desc" "$goal_version_str" "${{env.ROJO_CONFIG}}"
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - uses: actions/setup-node@v3
+        with:
+            node-version: latest
+            registry-url: https://registry.npmjs.org
+            cache: npm
+            cache-dependency-path: package-lock.json
+
+      - name: install node packages
+        run: sh scripts/npm-install.sh
+
+      - name: build validate project
+        run: sh scripts/validate.sh
+
+      - name: publish package
+        run: npm publish --access public
+        env:
+            NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

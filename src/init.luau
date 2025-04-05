@@ -14,11 +14,12 @@ type ResultImpl<V, E> = {
 	inspect: (self: any, fn: (ok: V) -> ()) -> Result<V, E>,
 	inspectErr: (self: any, fn: (err: E) -> ()) -> Result<V, E>,
 	match: <O>(self: any, ok: (ok: V) -> O, err: (err: E) -> O) -> O,
+	-- deprecated these methods because they make the type very complex and aren't used much
 	--type swapping with map stuff is technically okay, but I can't get the type engine to recognize that
-	map: (self: any, fn: (ok: V) -> V) -> Result<V, E>,
-	mapErr: (self: any, fn: (err: E) -> E) -> Result<V, E>,
-	mapOr: (self: any, mapFn: (ok: V) -> V, alt: V) -> Result<V, E>,
-	mapOrElse: (self: any, mapFn: (ok: V) -> V, elseFn: () -> V) -> Result<V, E>,
+	-- map: (self: any, fn: (ok: V) -> V) -> Result<V, E>,
+	-- mapErr: (self: any, fn: (err: E) -> E) -> Result<V, E>,
+	-- mapOr: (self: any, mapFn: (ok: V) -> V, alt: V) -> Result<V, E>,
+	-- mapOrElse: (self: any, mapFn: (ok: V) -> V, elseFn: () -> V) -> Result<V, E>,
 	unwrap: (self: any) -> V,
 	unwrapErr: (self: any) -> E,
 	unwrapOr: (self: any, alt: V) -> V,
@@ -144,7 +145,9 @@ function Result:match<O>(ok: (ok: unknown) -> O, err: (err: unknown) -> O): O
 	end
 end
 
-function Result:map(fn: (ok: unknown) -> unknown): Result<unknown, unknown>
+local DeprecatedResult = Result :: any
+
+function DeprecatedResult:map(fn: (ok: unknown) -> unknown): Result<unknown, unknown>
 	return Result.match(self, function(ok)
 		return fromOk(fn(self._ok))
 	end, function(err)
@@ -152,14 +155,17 @@ function Result:map(fn: (ok: unknown) -> unknown): Result<unknown, unknown>
 	end)
 end
 
-function Result:mapOr(mapFn: (ok: unknown) -> unknown, alt: unknown): Result<unknown, unknown>
+function DeprecatedResult:mapOr(mapFn: (ok: unknown) -> unknown, alt: unknown): Result<unknown, unknown>
 	if Result.isOk(self) then
 		return fromOk(mapFn(self._ok))
 	end
 	return fromOk(alt)
 end
 
-function Result:mapOrElse(mapFn: (ok: unknown) -> unknown, elseFn: () -> unknown): Result<unknown, unknown>
+function DeprecatedResult:mapOrElse(
+	mapFn: (ok: unknown) -> unknown,
+	elseFn: () -> unknown
+): Result<unknown, unknown>
 	if Result.isOk(self) then
 		return fromOk(mapFn(self._ok))
 	end
