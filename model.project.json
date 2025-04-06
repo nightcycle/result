@@ -6,6 +6,9 @@
 			"$path": "Packages",
 			"Main": {
 				"$path": "src"
+			},
+			"StageMain": {
+				"$path": "stage-src"
 			}
 		}
 	}

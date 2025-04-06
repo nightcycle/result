@@ -5,7 +5,6 @@
 		"*": true
 	},
 	"aliases": {
-		"wally": "./Packages",
-		"proj": "./src"
+		"pkg": "node_modules/.luau-aliases"
 	}
 }

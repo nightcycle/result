@@ -6,3 +6,6 @@ authors = ["CJ Oyer <coyer@nightcycle.us>"]
 realm = "shared"
 registry = "https://github.com/upliftgames/wally-index"
 exclude = ["Packages", ".vscode"]
+
+[dependencies]
+error = "nightcycle/error@^0"

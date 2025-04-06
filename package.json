@@ -1,18 +1,20 @@
 {
-	"name": "@nightcycle/result",
+	"name": "@nightcycle/future",
 	"version": "1.0.2",
 	"description": "a package",
 	"license": "Apache-2.0",
 	"author": "nightcycle <coyer@nightcycle.us>",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/nightcycle/result.git"
+		"url": "git+https://github.com/nightcycle/error.git"
 	},
 	"main": "src/init.luau",
 	"scripts": {
 		"prepare": "npmluau"
 	},
-	"dependencies": {},
+	"dependencies": {
+		"@nightcycle/error": "^0"
+	},
 	"devDependencies": {
 		"npmluau": "^0.1.1"
 	},

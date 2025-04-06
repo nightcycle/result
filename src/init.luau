@@ -2,6 +2,7 @@
 -- https://doc.rust-lang.org/std/result/enum.Result.html
 -- Services
 -- Packages
+local Error = require("@pkg/@nightcycle/error")
 -- Modules
 -- Types
 type State = "E" | "O"
@@ -93,7 +94,13 @@ end
 -- methods
 function Result:__tostring(): string
 	if Result.isOk(self) then
+		if typeof(self._ok) == "table" then
+			return `Ok<{Error.displayAsJson(self._ok)}>`
+		end
 		return `Ok<{self._ok}>`
+	end
+	if typeof(self._err) == "table" then
+		return `Ok<{Error.displayAsJson(self._err)}>`
 	end
 	return `Err<{self._err}>`
 end

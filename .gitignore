@@ -5,6 +5,7 @@ lints
 build
 serve
 node_modules
+stage-src
 
 # Files
 sourcemap.json

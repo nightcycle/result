@@ -5,8 +5,7 @@
 			"current": {
 				"name": "path",
 				"sources": {
-					"@proj": "src",
-					"@wally": "Packages"
+					"@wally": "./Packages"
 				}
 			},
 			"target": {
