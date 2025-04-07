@@ -28,14 +28,20 @@ type ResultImpl<V, E> = {
 	asNullable: (self: any) -> V?,
 	expect: (self: any, msg: string) -> V,
 }
-export type Result<V, E> = typeof(setmetatable(
-	{} :: {
-		_state: string, --State, --replaced for performance reasons
-		_ok: V?,
-		_err: E?,
-	},
-	{} :: ResultImpl<V, E>
-))
+type ResultStruct<V, E> = {
+	_state: string, --State, --replaced for performance reasons
+	_ok: V?,
+	_err: E?,
+}
+export type Result<V, E> = ResultImpl<V, E>
+-- typeof(setmetatable(
+-- 	{} :: {
+-- 		_state: string, --State, --replaced for performance reasons
+-- 		_ok: V?,
+-- 		_err: E?,
+-- 	},
+-- 	{} :: ResultImpl<V, E>
+-- ))
 
 -- Constants
 local STATE_OK: State = "O"
@@ -106,10 +112,11 @@ function Result:__tostring(): string
 end
 
 function Result:__eq(other: Result<unknown, unknown>): boolean
+	local ot: any = other
 	if Result.isOk(self) and Result.isOk(other) then
-		return self._ok == other._ok
+		return self._ok == ot._ok
 	elseif Result.isErr(self) and Result.isErr(other) then
-		return self._err == other._err
+		return self._err == ot._err
 	end
 	return false
 end
