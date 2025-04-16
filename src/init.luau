@@ -190,7 +190,7 @@ function Result:unwrap()
 	if Result.isOk(self) then
 		return self._ok
 	end
-	error(`{self._err}`)
+	error(`{if typeof(self._err) == "table" then Error.displayAsJson(self._err) else self._err}`)
 end
 
 function Result:unwrapErr()
