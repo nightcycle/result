@@ -106,6 +106,9 @@ function Result:__tostring(): string
 		return `Ok<{self._ok}>`
 	end
 	if typeof(self._err) == "table" then
+		if Error.isErr(self._err) then
+			return `Err<{self._err:display("Full")}>`
+		end
 		return `Ok<{Error.displayAsJson(self._err)}>`
 	end
 	return `Err<{self._err}>`
@@ -190,7 +193,12 @@ function Result:unwrap()
 	if Result.isOk(self) then
 		return self._ok
 	end
-	error(`{if typeof(self._err) == "table" then Error.displayAsJson(self._err) else self._err}`)
+	error(
+		`{if Error.isErr(self._err)
+			then self._err:display("Full")
+			elseif typeof(self._err) == "table" then Error.displayAsJson(self._err)
+			else self._err}`
+	)
 end
 
 function Result:unwrapErr()
