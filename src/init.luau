@@ -15,12 +15,9 @@ type ResultImpl<V, E> = {
 	inspect: (self: any, fn: (ok: V) -> ()) -> Result<V, E>,
 	inspectErr: (self: any, fn: (err: E) -> ()) -> Result<V, E>,
 	match: <O>(self: any, ok: (ok: V) -> O, err: (err: E) -> O) -> O,
-	-- deprecated these methods because they make the type very complex and aren't used much
 	--type swapping with map stuff is technically okay, but I can't get the type engine to recognize that
-	-- map: (self: any, fn: (ok: V) -> V) -> Result<V, E>,
-	-- mapErr: (self: any, fn: (err: E) -> E) -> Result<V, E>,
-	-- mapOr: (self: any, mapFn: (ok: V) -> V, alt: V) -> Result<V, E>,
-	-- mapOrElse: (self: any, mapFn: (ok: V) -> V, elseFn: () -> V) -> Result<V, E>,
+	map: (self: any, fn: (ok: V) -> V) -> Result<V, E>,
+	mapErr: (self: any, fn: (err: E) -> E) -> Result<V, E>,
 	unwrap: (self: any) -> V,
 	unwrapErr: (self: any) -> E,
 	unwrapOr: (self: any, alt: V) -> V,
@@ -34,14 +31,6 @@ type ResultStruct<V, E> = {
 	_err: E?,
 }
 export type Result<V, E> = ResultImpl<V, E>
--- typeof(setmetatable(
--- 	{} :: {
--- 		_state: string, --State, --replaced for performance reasons
--- 		_ok: V?,
--- 		_err: E?,
--- 	},
--- 	{} :: ResultImpl<V, E>
--- ))
 
 -- Constants
 local STATE_OK: State = "O"
@@ -63,7 +52,7 @@ local isResult = function<V, E>(value: unknown?): boolean
 end
 
 -- Constructors
-local fromOk = function<V, E>(ok: V): Result<V, E>
+local fromOk = function<V, E>(ok: V): Result<V, any>
 	local self: any = setmetatable({
 		_state = STATE_OK :: string,
 		_ok = ok,
@@ -72,7 +61,7 @@ local fromOk = function<V, E>(ok: V): Result<V, E>
 	table.freeze(self)
 	return self
 end
-local fromErr = function<V, E>(err: E): Result<V, E>
+local fromErr = function<V, E>(err: E): Result<any, E>
 	local self: any = setmetatable({
 		_state = STATE_ERR :: string,
 		_ok = nil,
@@ -162,9 +151,7 @@ function Result:match<O>(ok: (ok: unknown) -> O, err: (err: unknown) -> O): O
 	end
 end
 
-local DeprecatedResult = Result :: any
-
-function DeprecatedResult:map(fn: (ok: unknown) -> unknown): Result<unknown, unknown>
+function Result:map(fn: (ok: unknown) -> unknown): Result<unknown, unknown>
 	return Result.match(self, function(ok)
 		return fromOk(fn(self._ok))
 	end, function(err)
@@ -172,21 +159,12 @@ function DeprecatedResult:map(fn: (ok: unknown) -> unknown): Result<unknown, unk
 	end)
 end
 
-function DeprecatedResult:mapOr(mapFn: (ok: unknown) -> unknown, alt: unknown): Result<unknown, unknown>
-	if Result.isOk(self) then
-		return fromOk(mapFn(self._ok))
-	end
-	return fromOk(alt)
-end
-
-function DeprecatedResult:mapOrElse(
-	mapFn: (ok: unknown) -> unknown,
-	elseFn: () -> unknown
-): Result<unknown, unknown>
-	if Result.isOk(self) then
-		return fromOk(mapFn(self._ok))
-	end
-	return fromOk(elseFn())
+function Result:mapErr(fn: (err: unknown) -> unknown): Result<unknown, unknown>
+	return Result.match(self, function(ok)
+		return fromOk(self._ok)
+	end, function(err)
+		return fromErr(fn(self._err))
+	end)
 end
 
 function Result:unwrap()
@@ -231,13 +209,70 @@ function Result:expect(msg: string)
 	error(msg)
 end
 
+local DeprecatedResult = Result :: any
+
+function DeprecatedResult:mapOr(mapFn: (ok: unknown) -> unknown, alt: unknown): Result<unknown, unknown>
+	if Result.isOk(self) then
+		return fromOk(mapFn(self._ok))
+	end
+	return fromOk(alt)
+end
+
+function DeprecatedResult:mapOrElse(
+	mapFn: (ok: unknown) -> unknown,
+	elseFn: () -> unknown
+): Result<unknown, unknown>
+	if Result.isOk(self) then
+		return fromOk(mapFn(self._ok))
+	end
+	return fromOk(elseFn())
+end
+
 return {
 	ok = fromOk,
 	err = fromErr,
 	try = try,
+	map = function<VI, VO, E>(result: Result<VI, E>, fn: (ok: VI) -> VO): Result<VO, E>
+		return result:map(fn :: any) :: any
+	end,
+	mapErr = function<V, EI, EO>(result: Result<V, EI>, fn: (err: EI) -> EO): Result<V, EO>
+		return result:mapErr(fn :: any) :: any
+	end,
+	-- constructs a runtime type-checker with the same format as osyrisrblx/t
+	type = function<V, E>(
+		okType: (value: V) -> (boolean, string?),
+		errType: (value: E) -> (boolean, string?)
+	): (value: unknown?) -> (boolean, string?)
+		return function(value: unknown?): (boolean, string?)
+			if typeof(value) == "table" then
+				local mt = getmetatable(value :: any)
+				if mt == Result then
+					local valRes: Result<V, E> = value :: Result<V, E>
+					return valRes:match(function(ok)
+						return okType(ok)
+					end, function(err)
+						return errType(err)
+					end)
+				end
+			end
+			return false, "Value is not a result"
+		end
+	end,
 	-- because the syntax of local result = (function() return Result.ok(1) end)() is not ideal
 	from = function<V, E>(callback: () -> Result<V, E>): Result<V, E>
 		return callback()
+	end,
+	-- if you're already using a pcall and want to wrap it in a result, use this
+	catch = function(success: boolean, message: string?): Result<true, string>
+		if success then
+			return fromOk(true :: true) :: any
+		else
+			assert(
+				typeof(message) == "string",
+				`message must be a string when success = false, got "{typeof(message)}"`
+			)
+			return fromErr(message)
+		end
 	end,
 	isResult = isResult,
 }
