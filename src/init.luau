@@ -228,6 +228,8 @@ function DeprecatedResult:mapOrElse(
 	return fromOk(elseFn())
 end
 
+type t = typeof(pcall)
+
 return {
 	ok = fromOk,
 	err = fromErr,
@@ -263,15 +265,15 @@ return {
 		return callback()
 	end,
 	-- if you're already using a pcall and want to wrap it in a result, use this
-	catch = function(success: boolean, message: string?): Result<true, string>
+	catch = function<V>(success: boolean, response: V | string): Result<V, string>
 		if success then
-			return fromOk(true :: true) :: any
+			return fromOk(response :: V)
 		else
 			assert(
-				typeof(message) == "string",
-				`message must be a string when success = false, got "{typeof(message)}"`
+				typeof(response) == "string",
+				`message must be a string when success = false, got "{typeof(response)}"`
 			)
-			return fromErr(message)
+			return fromErr(response)
 		end
 	end,
 	isResult = isResult,
